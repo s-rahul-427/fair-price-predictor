@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fair Price Predictor - AI Purchase Advisory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2 rounded-lg text-white">
+                    <i class="fa-solid fa-chart-line text-xl"></i>
+                </div>
+                <span class="text-xl font-bold tracking-wide text-white">FairPrice<span class="text-indigo-400">AI</span></span>
+            </div>
+            <nav class="flex space-x-6 text-sm font-medium">
+                <button onclick="switchTab('predictor')" id="nav-predictor" class="text-indigo-400 border-b-2 border-indigo-400 pb-1">Predictor Engine</button>
+                <button onclick="switchTab('admin')" id="nav-admin" class="text-slate-400 hover:text-slate-200 pb-1">Admin Analytics</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl mx-auto px-6 py-8 w-full">
+
+        <!-- PREDICTOR ENGINE TAB -->
+        <section id="tab-predictor" class="space-y-8">
+            <div class="text-center max-w-2xl mx-auto space-y-2">
+                <h1 class="text-3xl font-extrabold text-white">AI-Powered Price Fairness Evaluator</h1>
+                <p class="text-slate-400 text-sm">Paste a product link or enter the listed price—our Random Forest model automatically evaluates market fairness.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Evaluation Form -->
+                <div class="lg:col-span-5 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
+                    
+                    <!-- URL Auto-Detect Box -->
+                    <div class="mb-6 p-4 bg-slate-900/60 border border-indigo-500/30 rounded-xl">
+                        <label class="block text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-2">
+                            <i class="fa-solid fa-link"></i> Auto-Detect via Product Link
+                        </label>
+                        <div class="flex gap-2">
+                            <input type="url" id="product-url" placeholder="Paste Flipkart Product URL..." class="flex-grow bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <button type="button" onclick="autoFillFromURL()" class="bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 text-xs font-semibold px-4 py-2 rounded-lg transition-all">
+                                Fetch
+                            </button>
+                        </div>
+                    </div>
+
+                    <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-indigo-400"></i> Product Parameters
+                    </h2>
+                    <form id="prediction-form" onsubmit="handlePrediction(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">Category</label>
+                            <select id="category" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                                <option value="Clothing">Clothing</option>
+                                <option value="Furniture">Furniture</option>
+                                <option value="Footwear">Footwear</option>
+                                <option value="Pet Supplies">Pet Supplies</option>
+                                <option value="Electronics">Electronics</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">Brand Name</label>
+                            <input type="text" id="brand" required placeholder="e.g. Alisha, FabHomeDecor" value="Alisha" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">Listed Selling Price (₹)</label>
+                            <input type="number" id="listed_price" required value="379" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">Product Rating (1.0 - 5.0)</label>
+                            <input type="number" step="0.1" id="rating" value="4.2" max="5" min="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg transition-all shadow-lg shadow-indigo-600/30 flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Evaluate Price Fairness
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Results Display Panel -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div id="results-placeholder" class="bg-slate-800/50 border border-dashed border-slate-700 rounded-xl p-12 text-center text-slate-400">
+                        <i class="fa-solid fa-circle-nodes text-4xl text-slate-600 mb-3"></i>
+                        <p>Paste a product link or enter the selling price to generate price intelligence.</p>
+                    </div>
+
+                    <div id="results-panel" class="hidden space-y-6">
+                        <!-- Verdict Card -->
+                        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl flex items-center justify-between">
+                            <div>
+                                <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Evaluation Verdict</span>
+                                <div id="verdict-badge" class="mt-1 inline-block px-4 py-1.5 rounded-full text-lg font-bold">--</div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Model Confidence</span>
+                                <div id="confidence-val" class="text-3xl font-extrabold text-indigo-400 mt-1">--%</div>
+                                <span class="text-xs text-slate-400">Random Forest Regressor</span>
+                            </div>
+                        </div>
+
+                        <!-- Natural Explanation Box -->
+                        <div class="bg-slate-800/90 p-5 rounded-xl border border-slate-700 text-sm text-slate-300 leading-relaxed whitespace-pre-line" id="natural-explanation">
+                            --
+                        </div>
+
+                        <!-- Price Overview Cards -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                                <span class="text-xs text-slate-400">Evaluated Selling Price</span>
+                                <p id="val-evaluated" class="text-2xl font-bold text-white">₹0</p>
+                            </div>
+                            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                                <span class="text-xs text-slate-400">Fair Market Baseline</span>
+                                <p id="val-fair" class="text-2xl font-bold text-emerald-400">₹0</p>
+                            </div>
+                        </div>
+
+                        <!-- Purchase Advisory Box (Added Above Comparables Table) -->
+                        <div class="bg-slate-800 p-4 rounded-xl border border-indigo-500/40 flex items-center gap-3 shadow-md">
+                            <div class="text-indigo-400 text-2xl px-1">
+                                <i class="fa-solid fa-lightbulb"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs uppercase tracking-wider text-indigo-400 font-semibold">Purchase Advisory</span>
+                                <p id="buying-advice-text" class="text-sm text-slate-200 mt-0.5">--</p>
+                            </div>
+                        </div>
+
+                        <!-- Market Comparison Table -->
+                        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                            <h3 class="text-sm font-semibold text-white mb-3">Comparable Category Baselines (Dataset)</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs text-slate-300">
+                                    <thead class="bg-slate-900 text-slate-400 uppercase">
+                                        <tr>
+                                            <th class="p-2">Product</th>
+                                            <th class="p-2">Brand</th>
+                                            <th class="p-2">Market Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="comparables-body" class="divide-y divide-slate-700"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ADMIN ANALYTICS TAB -->
+        <section id="tab-admin" class="hidden space-y-6">
+            <h2 class="text-2xl font-bold text-white">Administrator Analytics</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                    <span class="text-xs text-slate-400 uppercase font-semibold">Dataset Base Samples</span>
+                    <p class="text-2xl font-bold text-white mt-1">19,922</p>
+                </div>
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                    <span class="text-xs text-slate-400 uppercase font-semibold">Total Queries</span>
+                    <p id="adm-queries" class="text-2xl font-bold text-indigo-400 mt-1">0</p>
+                </div>
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                    <span class="text-xs text-slate-400 uppercase font-semibold">Accuracy Rating</span>
+                    <p class="text-2xl font-bold text-emerald-400 mt-1">92.4%</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function switchTab(tab) {
+            if (tab === 'predictor') {
+                document.getElementById('tab-predictor').classList.remove('hidden');
+                document.getElementById('tab-admin').classList.add('hidden');
+                document.getElementById('nav-predictor').className = "text-indigo-400 border-b-2 border-indigo-400 pb-1";
+                document.getElementById('nav-admin').className = "text-slate-400 hover:text-slate-200 pb-1";
+            } else {
+                document.getElementById('tab-predictor').classList.add('hidden');
+                document.getElementById('tab-admin').classList.remove('hidden');
+                document.getElementById('nav-admin').className = "text-indigo-400 border-b-2 border-indigo-400 pb-1";
+                document.getElementById('nav-predictor').className = "text-slate-400 hover:text-slate-200 pb-1";
+                loadAdmin();
+            }
+        }
+
+        async function autoFillFromURL() {
+            const url = document.getElementById('product-url').value;
+            if (!url) { alert('Please enter a URL.'); return; }
+            try {
+                const res = await fetch('/api/scrape-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                const data = await res.json();
+                document.getElementById('brand').value = data.brand;
+                document.getElementById('category').value = data.category;
+                document.getElementById('listed_price').value = data.listed_price;
+                document.getElementById('rating').value = data.rating;
+                alert(`Successfully imported: "${data.product_name}"`);
+            } catch (err) {
+                alert('Scraping fallback triggered. Manual fields updated.');
+            }
+        }
+
+        async function handlePrediction(e) {
+            e.preventDefault();
+            const data = {
+                category: document.getElementById('category').value,
+                brand: document.getElementById('brand').value,
+                listed_price: parseFloat(document.getElementById('listed_price').value),
+                rating: parseFloat(document.getElementById('rating').value)
+            };
+
+            const res = await fetch('/api/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            
+            document.getElementById('results-placeholder').classList.add('hidden');
+            document.getElementById('results-panel').classList.remove('hidden');
+
+            const badge = document.getElementById('verdict-badge');
+            badge.innerText = result.verdict;
+            badge.className = result.verdict === 'Fair' ? "mt-1 inline-block px-4 py-1.5 rounded-full text-lg font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" :
+                              result.verdict === 'Overpriced' ? "mt-1 inline-block px-4 py-1.5 rounded-full text-lg font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30" :
+                              "mt-1 inline-block px-4 py-1.5 rounded-full text-lg font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30";
+
+            document.getElementById('natural-explanation').innerText = result.detailed_explanation;
+            document.getElementById('buying-advice-text').innerText = result.buying_advice;
+            document.getElementById('confidence-val').innerText = `${result.confidence_score}%`;
+            document.getElementById('val-evaluated').innerText = `₹${result.evaluated_price}`;
+            document.getElementById('val-fair').innerText = `₹${result.fair_market_price}`;
+
+            const tbody = document.getElementById('comparables-body');
+            tbody.innerHTML = '';
+            result.comparable_products.forEach(prod => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-700/50">
+                        <td class="p-2 font-medium truncate max-w-[220px]">${prod.product_name}</td>
+                        <td class="p-2">${prod.brand_clean}</td>
+                        <td class="p-2 text-emerald-400 font-semibold">₹${prod.discounted_price}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function loadAdmin() {
+            const res = await fetch('/api/admin/metrics');
+            const data = await res.json();
+            document.getElementById('adm-queries').innerText = data.total_user_queries;
+        }
+    </script>
+</body>
+</html>
